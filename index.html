@@ -109,26 +109,10 @@
   .duo h3{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;margin-bottom:5px}
   .duo p{font-size:11.5px;color:var(--ink-dim);line-height:1.6}
 
-  .brands{padding:16px 20px 0;font-size:11.5px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
+  .brands{padding:16px 20px 22px;font-size:11.5px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
   .brands i{font-style:normal;color:var(--ink-dim)}
   .brands a{color:var(--ink-dim);text-decoration:none;border-bottom:1px solid var(--rule)}
 
-  /* ── 頁尾 QR ── */
-  .foot{
-    margin-top:20px;padding:15px 20px;display:flex;align-items:center;gap:14px;
-    background:var(--bg-deep);border-top:1px solid var(--rule);
-  }
-  .qr{background:var(--ink-white);padding:6px;border-radius:5px;line-height:0;flex:0 0 auto}
-  .qr img,.qr canvas{display:block;width:62px;height:62px}
-  .footright{flex:1}
-  #qrtext{font-size:11.5px;color:var(--ink-dim);line-height:1.55}
-  #qrtoggle{display:flex;gap:5px;margin-top:9px}
-  #qrtoggle button{
-    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;
-    padding:4px 8px;border-radius:4px;cursor:pointer;
-    border:1px solid var(--rule);background:transparent;color:var(--ink-mute);transition:.2s;
-  }
-  #qrtoggle button[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
 
   .toast{
     position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(14px);
@@ -143,8 +127,7 @@
     .zh,.brand{color:#0e1818}
     .role,.tag,.duo p,.brands,#qrtext{color:#5a6360}
     .duo>div{background:#fff}
-    .foot{background:#fff}
-    .cta,.who,#qrtoggle{display:none}
+    .cta,.who{display:none}
     .topo{opacity:.25}
   }
 </style>
@@ -201,6 +184,9 @@
     <a class="c" id="a-mail" href="#">
       <span class="k">MAIL</span><span class="v" id="t-mail"></span><span class="arrow">→</span>
     </a>
+    <a class="c" id="a-site" href="#" target="_blank" rel="noopener" hidden>
+      <span class="k">WEB</span><span class="v" id="t-site"></span><span class="arrow">→</span>
+    </a>
   </nav>
 
   <div class="cta">
@@ -221,23 +207,12 @@
     <div class="b"><div class="t">後端引擎</div><h3>AI 數位轉型</h3><p>把流程跑順，把人留下</p></div>
   </div>
 
-  <p class="brands">PRODUCTS　<i id="b-chill">Chill Stay 來去住一晚</i>　<i id="b-ffpos">FFPOS</i><span id="siteline" hidden>　<a id="b-site" href="#"></a></span></p>
+  <p class="brands">PRODUCTS　<i id="b-chill">Chill Stay 來去住一晚</i>　<i id="b-ffpos">FFPOS</i></p>
 
-  <div class="foot">
-    <div class="qr" id="qr"></div>
-    <div class="footright">
-      <p id="qrtext">相機掃一下<br>直接存進通訊錄</p>
-      <div id="qrtoggle" role="group" aria-label="切換 QR 內容" hidden>
-        <button id="q0" aria-pressed="true">通訊錄</button>
-        <button id="q1" aria-pressed="false">加 LINE</button>
-      </div>
-    </div>
-  </div>
 </main>
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 /* ══════════ 要改資料，只改這一段 ══════════ */
 const PEOPLE = [
@@ -251,7 +226,7 @@ const PEOPLE = [
     line:"https://line.me/ti/p/~zip-7" }
 ];
 const ORG = "品昇智匯 AICC";
-const LINKS = { site:"", chillstay:"", ffpos:"" };
+const LINKS = { site:"https://ainickzip.github.io", chillstay:"", ffpos:"" };
 
 /* AICC 官方帳號開通後填 id，程式會自動改用 OA、忽略上面的個人 LINE */
 const LINE_OA = { id:"", prefill:"" };
@@ -267,7 +242,7 @@ const $ = id => document.getElementById(id);
 const digits = t => t.replace(/[^0-9+]/g,"");
 const enc = encodeURIComponent;
 const hasOA = () => !!LINE_OA.id;
-let cur = 0, qrMode = "card";
+let cur = 0;
 
 function lineURL(p, forQR){
   if(LINE_OA.id){
@@ -297,11 +272,12 @@ function brand(id,label,url){
   $(id).innerHTML = url ? '<a href="'+url+'" target="_blank" rel="noopener">'+label+'</a>' : label;
 }
 function renderLinks(){
+  const st=$("a-site");
+  if(LINKS.site){ st.hidden=false; st.href=LINKS.site;
+    $("t-site").textContent=LINKS.site.replace(/^https?:\/\//,"").replace(/\/$/,""); }
+  else st.hidden=true;
   brand("b-chill","Chill Stay 來去住一晚",LINKS.chillstay);
   brand("b-ffpos","FFPOS",LINKS.ffpos);
-  if(LINKS.site){ $("siteline").hidden=false; $("b-site").href=LINKS.site;
-    $("b-site").textContent=LINKS.site.replace(/^https?:\/\//,""); }
-  else $("siteline").hidden=true;
 }
 
 function render(i, writeHash){
@@ -327,29 +303,9 @@ function render(i, writeHash){
     $("a-vcf").className = "btn btn-primary";   /* 沒 LINE 時通訊錄遞補為主按鈕 */
   }
   $("a-vcf").hidden = !SHOW_VCARD;
-  $("qrtoggle").hidden = !lineURL(p,true);
 
   $("p0").setAttribute("aria-pressed",i===0);
   $("p1").setAttribute("aria-pressed",i===1);
-  drawQR(p);
-}
-
-function drawQR(p){
-  const box=$("qr"); box.innerHTML="";
-  const lq=lineURL(p,true), useLine=(qrMode==="line" && !!lq);
-  const data = useLine ? lq
-    : "MECARD:N:"+p.zh+";TEL:"+digits(p.tel)+";EMAIL:"+p.mail+";ORG:"+ORG+";;";
-  $("qrtext").innerHTML = useLine
-    ? (hasOA() ? "掃一下加 LINE<br>加入後自動收到訊息" : "掃一下開 LINE<br>直接跳到加好友頁")
-    : "相機掃一下<br>直接存進通訊錄";
-  $("q0").setAttribute("aria-pressed", !useLine);
-  $("q1").setAttribute("aria-pressed", useLine);
-  if(window.QRCode){
-    new QRCode(box,{text:data,width:62,height:62,colorDark:"#0e1818",colorLight:"#f0ece4",
-      correctLevel:QRCode.CorrectLevel.L});
-  } else {
-    box.innerHTML='<span style="color:#0e1818;font-size:9px;display:block;width:62px;line-height:1.4">QR 需連網</span>';
-  }
 }
 
 $("a-vcf").addEventListener("click",()=>{
@@ -374,8 +330,6 @@ $("a-share").addEventListener("click",async()=>{
   }catch(e){}
 });
 
-$("q0").addEventListener("click",()=>{ qrMode="card"; drawQR(PEOPLE[cur]); });
-$("q1").addEventListener("click",()=>{ qrMode="line"; drawQR(PEOPLE[cur]); });
 $("p0").addEventListener("click",()=>render(0));
 $("p1").addEventListener("click",()=>render(1));
 
