@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>品昇智匯 AICC｜電子名片</title>
+<meta name="description" content="品昇智匯 AICC — 前端用 AI 把客戶帶進來，後端用自動化把流程跑起來。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e1818'/%3E%3Cpath d='M2 22 Q 10 16 16 12 Q 22 16 30 22' stroke='%23d4a85a' stroke-width='1.5' fill='none'/%3E%3Cpath d='M4 26 Q 12 19 16 16 Q 20 19 28 26' stroke='%23d4a85a' stroke-width='1.5' fill='none' opacity='0.7'/%3E%3Ccircle cx='16' cy='12' r='2.4' fill='%23e07a3e'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,600;1,6..72,500&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ── 與官網同一組 token ── */
+  :root{
+    --bg-deep:#0e1818; --bg-pane:#14201f; --bg-card:#1a2625;
+    --ink-white:#f0ece4; --ink-warm:#e5ddc9; --ink-dim:#8a948f; --ink-mute:#5a6360;
+    --contour-gold:#d4a85a; --accent-ember:#e07a3e; --accent-glow:#f4c373;
+    --rule:#2a3633; --rule-soft:#1f2a28;
+    --accent:var(--contour-gold);
+  }
+  body[data-card="zip"]{ --accent:var(--accent-ember) }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{background:var(--bg-deep)}
+  body{
+    background:var(--bg-deep);color:var(--ink-white);
+    font-family:'Inter Tight','Noto Sans TC',sans-serif;line-height:1.6;
+    -webkit-font-smoothing:antialiased;min-height:100dvh;
+    display:flex;align-items:center;justify-content:center;
+    padding:22px 14px calc(26px + env(safe-area-inset-bottom));
+  }
+  ::selection{background:var(--accent-ember);color:var(--bg-deep)}
+
+  .label{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--accent);font-weight:500;transition:color .35s;
+  }
+  .label::before{content:"// ";opacity:.5}
+
+  .card{
+    width:100%;max-width:404px;position:relative;overflow:hidden;
+    background:var(--bg-pane);border:1px solid var(--rule);border-radius:14px;
+    box-shadow:0 26px 60px rgba(0,0,0,.5);
+  }
+
+  /* ── 頂列 ── */
+  .top{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;border-bottom:1px solid var(--rule-soft);position:relative;z-index:3;
+  }
+  .brand{display:flex;align-items:center;gap:9px;font-family:'Newsreader',serif;font-weight:600;font-size:16px}
+  .brand svg{width:22px;height:22px;flex:0 0 auto}
+  .who{display:flex;gap:5px}
+  .who button{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
+    padding:5px 10px;border-radius:5px;cursor:pointer;transition:.2s;
+    border:1px solid var(--rule);background:transparent;color:var(--ink-mute);
+  }
+  .who button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg-deep);font-weight:500}
+
+  /* ── 等高線 ── */
+  .topo{position:absolute;top:44px;left:0;right:0;height:230px;z-index:0;pointer-events:none;opacity:.5}
+  .topo svg{width:150%;height:100%;margin-left:-25%}
+  .topo .peak{fill:var(--accent-ember)}
+  @media (prefers-reduced-motion:no-preference){
+    .topo .peak{animation:pulse 2.6s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:1;transform:scale(1.35)}}
+  }
+
+  /* ── 姓名 ── */
+  .id{padding:30px 20px 24px;position:relative;z-index:1}
+  .id .label{display:block;margin-bottom:16px}
+  .zh{font-family:'Noto Serif TC',serif;font-weight:900;font-size:clamp(38px,12vw,46px);line-height:1.02;letter-spacing:-.01em}
+  .en{font-family:'Newsreader',serif;font-style:italic;font-weight:500;font-size:19px;color:var(--accent);margin-top:8px;transition:color .35s}
+  .role{font-size:13px;color:var(--ink-dim);margin-top:8px}
+  .tag{
+    margin-top:20px;padding-top:16px;border-top:1px solid var(--rule);
+    font-size:14px;color:var(--ink-warm);line-height:1.7;max-width:25em;
+  }
+
+  /* ── 聯絡 ── */
+  .contact{padding:4px 20px 0;position:relative;z-index:1}
+  .c{display:flex;align-items:center;gap:14px;padding:13px 0;border-top:1px solid var(--rule-soft);text-decoration:none;color:var(--ink-white)}
+  .c:first-child{border-top:0}
+  .c .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.18em;color:var(--ink-mute);flex:0 0 42px}
+  .c .v{flex:1;font-size:16px;letter-spacing:.01em;word-break:break-all}
+  .c .arrow{color:var(--accent);font-size:13px;transition:transform .2s,color .35s}
+  .c:active .arrow{transform:translateX(3px)}
+
+  /* ── 行動 ── */
+  .cta{padding:20px 20px 0;display:flex;gap:9px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    border-radius:8px;font-family:'Inter Tight','Noto Sans TC',sans-serif;
+    font-weight:600;font-size:14.5px;cursor:pointer;border:0;padding:13px 16px;transition:.2s;
+  }
+  .btn-primary{flex:1;background:var(--accent);color:var(--bg-deep)}
+  .btn-primary[hidden],.btn-ghost[hidden]{display:none}
+  .btn-ghost{flex:0 0 auto;width:50px;background:transparent;color:var(--ink-white);border:1px solid var(--rule)}
+  .btn-ghost:active{border-color:var(--accent);color:var(--accent)}
+  .btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  /* ── 雙引擎 ── */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);margin:24px 20px 0;border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+  .duo>div{background:var(--bg-card);padding:15px 14px}
+  .duo .t{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+  .duo .f .t{color:var(--accent-ember)}
+  .duo .b .t{color:var(--contour-gold)}
+  .duo h3{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;margin-bottom:5px}
+  .duo p{font-size:11.5px;color:var(--ink-dim);line-height:1.6}
+
+  .brands{padding:16px 20px 0;font-size:11.5px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
+  .brands i{font-style:normal;color:var(--ink-dim)}
+  .brands a{color:var(--ink-dim);text-decoration:none;border-bottom:1px solid var(--rule)}
+
+  /* ── 頁尾 QR ── */
+  .foot{
+    margin-top:20px;padding:15px 20px;display:flex;align-items:center;gap:14px;
+    background:var(--bg-deep);border-top:1px solid var(--rule);
+  }
+  .qr{background:var(--ink-white);padding:6px;border-radius:5px;line-height:0;flex:0 0 auto}
+  .qr img,.qr canvas{display:block;width:62px;height:62px}
+  .footright{flex:1}
+  #qrtext{font-size:11.5px;color:var(--ink-dim);line-height:1.55}
+  #qrtoggle{display:flex;gap:5px;margin-top:9px}
+  #qrtoggle button{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;
+    padding:4px 8px;border-radius:4px;cursor:pointer;
+    border:1px solid var(--rule);background:transparent;color:var(--ink-mute);transition:.2s;
+  }
+  #qrtoggle button[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
+
+  .toast{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(14px);
+    background:var(--ink-white);color:var(--bg-deep);padding:10px 18px;border-radius:6px;
+    font-size:13px;opacity:0;pointer-events:none;transition:.22s;z-index:9;max-width:88vw;text-align:center;
+  }
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media print{
+    body{background:#fff;display:block;padding:0}
+    .card{background:#fff;color:#0e1818;border-color:#5a6360;box-shadow:none;max-width:100%}
+    .zh,.brand{color:#0e1818}
+    .role,.tag,.duo p,.brands,#qrtext{color:#5a6360}
+    .duo>div{background:#fff}
+    .foot{background:#fff}
+    .cta,.who,#qrtoggle{display:none}
+    .topo{opacity:.25}
+  }
+</style>
+</head>
+<body data-card="nick">
+<main class="card">
+
+  <div class="top">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <path d="M2 22 Q 10 16 16 12 Q 22 16 30 22" stroke="#d4a85a" stroke-width="1.5"/>
+        <path d="M4 26 Q 12 19 16 16 Q 20 19 28 26" stroke="#d4a85a" stroke-width="1.5" opacity=".7"/>
+        <path d="M6 30 Q 13 22 16 20 Q 19 22 26 30" stroke="#d4a85a" stroke-width="1.5" opacity=".45"/>
+        <circle cx="16" cy="12" r="2" fill="#e07a3e"/>
+      </svg>
+      品昇智匯
+    </div>
+    <div class="who" role="group" aria-label="切換名片">
+      <button id="p0" aria-pressed="true">NICK</button>
+      <button id="p1" aria-pressed="false">ZIP</button>
+    </div>
+  </div>
+
+  <div class="topo" aria-hidden="true">
+    <svg viewBox="0 0 900 260" preserveAspectRatio="xMidYMid meet">
+      <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#d4a85a" stop-opacity="0.85"/>
+        <stop offset="100%" stop-color="#d4a85a" stop-opacity="0.03"/>
+      </linearGradient></defs>
+      <g fill="none" stroke="url(#cg)" stroke-width="1.1">
+        <path d="M-40 230 Q 180 176 300 172 T 520 108 T 700 116 T 940 168"/>
+        <path d="M-40 214 Q 190 160 310 156 T 520 88 T 700 98 T 940 152" opacity=".88"/>
+        <path d="M-40 198 Q 200 144 320 140 T 520 68 T 700 80 T 940 136" opacity=".76"/>
+        <path d="M-40 182 Q 210 128 330 124 T 520 48 T 700 62 T 940 120" opacity=".62"/>
+        <path d="M-40 166 Q 220 112 340 108 T 520 28 T 700 44 T 940 104" opacity=".48"/>
+      </g>
+      <circle class="peak" cx="520" cy="28" r="5"/>
+      <circle class="peak" cx="520" cy="28" r="13" opacity=".18"/>
+    </svg>
+  </div>
+
+  <header class="id">
+    <span class="label" id="f-label">Co-founder / RD</span>
+    <h1 class="zh" id="f-zh">張惟荏</h1>
+    <div class="en" id="f-en">Nick Chang</div>
+    <div class="role" id="f-role">技術主導　AI 系統架構</div>
+    <p class="tag" id="f-tag"></p>
+  </header>
+
+  <nav class="contact">
+    <a class="c" id="a-tel" href="#">
+      <span class="k">TEL</span><span class="v" id="t-tel"></span><span class="arrow">→</span>
+    </a>
+    <a class="c" id="a-mail" href="#">
+      <span class="k">MAIL</span><span class="v" id="t-mail"></span><span class="arrow">→</span>
+    </a>
+  </nav>
+
+  <div class="cta">
+    <a class="btn btn-primary" id="a-line-btn" href="#">
+      <svg viewBox="0 0 24 24"><path d="M21 11c0 4-4 7-9 7a11 11 0 01-2.6-.3L4 20l1.3-3.4A7.6 7.6 0 013 11c0-4 4-7 9-7s9 3 9 7z"/></svg>
+      <span id="line-btn-text">加入 LINE</span>
+    </a>
+    <button class="btn btn-ghost" id="a-vcf" aria-label="存入通訊錄" title="存入通訊錄">
+      <svg viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14"/></svg>
+    </button>
+    <button class="btn btn-ghost" id="a-share" aria-label="分享名片">
+      <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="M8.2 10.9l7.6-4.4M8.2 13.1l7.6 4.4"/></svg>
+    </button>
+  </div>
+
+  <div class="duo">
+    <div class="f"><div class="t">前端引擎</div><h3>AI 數位行銷</h3><p>把對的客戶帶到你面前</p></div>
+    <div class="b"><div class="t">後端引擎</div><h3>AI 數位轉型</h3><p>把流程跑順，把人留下</p></div>
+  </div>
+
+  <p class="brands">PRODUCTS　<i id="b-chill">Chill Stay 來去住一晚</i>　<i id="b-ffpos">FFPOS</i><span id="siteline" hidden>　<a id="b-site" href="#"></a></span></p>
+
+  <div class="foot">
+    <div class="qr" id="qr"></div>
+    <div class="footright">
+      <p id="qrtext">相機掃一下<br>直接存進通訊錄</p>
+      <div id="qrtoggle" role="group" aria-label="切換 QR 內容" hidden>
+        <button id="q0" aria-pressed="true">通訊錄</button>
+        <button id="q1" aria-pressed="false">加 LINE</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* ══════════ 要改資料，只改這一段 ══════════ */
+const PEOPLE = [
+  { key:"nick", zh:"張惟荏", en:"Nick Chang",
+    label:"Co-founder / RD", role:"技術主導　AI 系統架構",
+    tel:"0932-684-051", mail:"hello@ainickzip.com",
+    line:"https://line.me/ti/p/~nickleo9" },
+  { key:"zip",  zh:"王品森", en:"Zip Wang",
+    label:"Co-founder / PM", role:"商務主導　品牌策略顧問",
+    tel:"0916-287-773", mail:"hello@ainickzip.com",
+    line:"https://line.me/ti/p/~zip-7" }
+];
+const ORG = "品昇智匯 AICC";
+const LINKS = { site:"", chillstay:"", ffpos:"" };
+
+/* AICC 官方帳號開通後填 id，程式會自動改用 OA、忽略上面的個人 LINE */
+const LINE_OA = { id:"", prefill:"" };
+
+/* 名片標語：想換就換這一句 */
+const TAGLINE = "客戶自動進來，流程自動跑完。";
+
+/* 存入通訊錄的小按鈕，不要就改成 false */
+const SHOW_VCARD = true;
+/* ══════════════════════════════════════════ */
+
+const $ = id => document.getElementById(id);
+const digits = t => t.replace(/[^0-9+]/g,"");
+const enc = encodeURIComponent;
+const hasOA = () => !!LINE_OA.id;
+let cur = 0, qrMode = "card";
+
+function lineURL(p, forQR){
+  if(LINE_OA.id){
+    const id = enc(LINE_OA.id);
+    if(LINE_OA.prefill && !forQR)
+      return "https://line.me/R/oaMessage/"+id+"/?"+enc(LINE_OA.prefill.replace("{name}",p.zh));
+    return "https://line.me/R/ti/p/"+id;
+  }
+  return p.line || "";
+}
+
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("on");
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("on"),2000); }
+
+function vcard(p){
+  return ["BEGIN:VCARD","VERSION:3.0",
+    "N;CHARSET=UTF-8:"+p.zh,"FN;CHARSET=UTF-8:"+p.zh,
+    "ORG;CHARSET=UTF-8:"+ORG,
+    "TITLE;CHARSET=UTF-8:"+p.label+" "+p.role.replace(/\u3000/g,"／"),
+    "TEL;TYPE=CELL:"+digits(p.tel),
+    "EMAIL;TYPE=INTERNET:"+p.mail,
+    LINKS.site ? "URL:"+LINKS.site : (lineURL(p,true) ? "URL:"+lineURL(p,true) : ""),
+    "END:VCARD"].filter(Boolean).join("\r\n");
+}
+
+function brand(id,label,url){
+  $(id).innerHTML = url ? '<a href="'+url+'" target="_blank" rel="noopener">'+label+'</a>' : label;
+}
+function renderLinks(){
+  brand("b-chill","Chill Stay 來去住一晚",LINKS.chillstay);
+  brand("b-ffpos","FFPOS",LINKS.ffpos);
+  if(LINKS.site){ $("siteline").hidden=false; $("b-site").href=LINKS.site;
+    $("b-site").textContent=LINKS.site.replace(/^https?:\/\//,""); }
+  else $("siteline").hidden=true;
+}
+
+function render(i, writeHash){
+  cur=i; const p=PEOPLE[i];
+  document.body.dataset.card=p.key;
+  document.title=p.zh+"　"+ORG;
+  if(writeHash!==false && location.protocol.indexOf("http")===0)
+    history.replaceState(null,"","#"+p.key);
+
+  $("f-label").textContent=p.label;
+  $("f-zh").textContent=p.zh; $("f-en").textContent=p.en; $("f-role").textContent=p.role;
+  $("a-tel").href="tel:"+digits(p.tel);  $("t-tel").textContent=p.tel;
+  $("a-mail").href="mailto:"+p.mail;     $("t-mail").textContent=p.mail;
+
+  $("f-tag").textContent = TAGLINE;
+  const lu=lineURL(p,false), lb=$("a-line-btn");
+  if(lu){
+    lb.hidden=false; lb.href=lu;
+    $("line-btn-text").textContent = hasOA() ? "加入官方帳號" : "加入 LINE";
+    $("a-vcf").className = "btn btn-ghost";
+  } else {
+    lb.hidden=true;
+    $("a-vcf").className = "btn btn-primary";   /* 沒 LINE 時通訊錄遞補為主按鈕 */
+  }
+  $("a-vcf").hidden = !SHOW_VCARD;
+  $("qrtoggle").hidden = !lineURL(p,true);
+
+  $("p0").setAttribute("aria-pressed",i===0);
+  $("p1").setAttribute("aria-pressed",i===1);
+  drawQR(p);
+}
+
+function drawQR(p){
+  const box=$("qr"); box.innerHTML="";
+  const lq=lineURL(p,true), useLine=(qrMode==="line" && !!lq);
+  const data = useLine ? lq
+    : "MECARD:N:"+p.zh+";TEL:"+digits(p.tel)+";EMAIL:"+p.mail+";ORG:"+ORG+";;";
+  $("qrtext").innerHTML = useLine
+    ? (hasOA() ? "掃一下加 LINE<br>加入後自動收到訊息" : "掃一下開 LINE<br>直接跳到加好友頁")
+    : "相機掃一下<br>直接存進通訊錄";
+  $("q0").setAttribute("aria-pressed", !useLine);
+  $("q1").setAttribute("aria-pressed", useLine);
+  if(window.QRCode){
+    new QRCode(box,{text:data,width:62,height:62,colorDark:"#0e1818",colorLight:"#f0ece4",
+      correctLevel:QRCode.CorrectLevel.L});
+  } else {
+    box.innerHTML='<span style="color:#0e1818;font-size:9px;display:block;width:62px;line-height:1.4">QR 需連網</span>';
+  }
+}
+
+$("a-vcf").addEventListener("click",()=>{
+  const p=PEOPLE[cur];
+  const b=new Blob(["\ufeff"+vcard(p)],{type:"text/vcard;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(b); a.download=p.key+"_aicc.vcf";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  toast("名片檔已下載，打開就能存入通訊錄");
+});
+
+$("a-share").addEventListener("click",async()=>{
+  const p=PEOPLE[cur];
+  const url=location.protocol.indexOf("http")===0
+    ? location.origin+location.pathname+"#"+p.key : "";
+  const text=ORG+"\n"+p.zh+"｜"+p.label+"\n"+p.tel+"\n"+p.mail;
+  try{
+    if(navigator.share){ await navigator.share(url?{title:ORG+"｜"+p.zh,text,url}:{title:ORG+"｜"+p.zh,text}); return; }
+    await navigator.clipboard.writeText(url?text+"\n"+url:text);
+    toast("名片已複製，貼給對方就行");
+  }catch(e){}
+});
+
+$("q0").addEventListener("click",()=>{ qrMode="card"; drawQR(PEOPLE[cur]); });
+$("q1").addEventListener("click",()=>{ qrMode="line"; drawQR(PEOPLE[cur]); });
+$("p0").addEventListener("click",()=>render(0));
+$("p1").addEventListener("click",()=>render(1));
+
+const KEYS=PEOPLE.map(x=>x.key);
+const fromHash=()=>{ const i=KEYS.indexOf(location.hash.replace("#","").toLowerCase()); return i<0?0:i; };
+window.addEventListener("hashchange",()=>render(fromHash(),false));
+
+renderLinks();
+render(fromHash());
+</script>
+</body>
+</html>
