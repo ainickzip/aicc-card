@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>品昇智匯 AICC｜掃描名片</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e1818'/%3E%3Cpath d='M2 22 Q 10 16 16 12 Q 22 16 30 22' stroke='%23d4a85a' stroke-width='1.5' fill='none'/%3E%3Ccircle cx='16' cy='12' r='2.4' fill='%23e07a3e'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,600;1,6..72,500&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0e1818;--bg-pane:#14201f;--ink-white:#f0ece4;--ink-warm:#e5ddc9;
+    --ink-dim:#8a948f;--ink-mute:#5a6360;--contour-gold:#d4a85a;--accent-ember:#e07a3e;
+    --rule:#2a3633;--accent:var(--contour-gold);
+  }
+  body[data-card="zip"]{--accent:var(--accent-ember)}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{background:var(--bg-deep)}
+  body{
+    background:var(--bg-deep);color:var(--ink-white);
+    font-family:'Inter Tight','Noto Sans TC',sans-serif;line-height:1.6;
+    min-height:100dvh;display:flex;align-items:center;justify-content:center;
+    padding:24px 16px calc(24px + env(safe-area-inset-bottom));-webkit-font-smoothing:antialiased;
+  }
+  .sheet{width:100%;max-width:400px;text-align:center;position:relative}
+
+  .brand{display:flex;align-items:center;justify-content:center;gap:9px;font-family:'Newsreader',serif;font-weight:600;font-size:17px;margin-bottom:6px}
+  .brand svg{width:22px;height:22px}
+  .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);transition:color .35s}
+  .label::before{content:"// ";opacity:.5}
+
+  .topo{position:absolute;top:44px;left:-10%;width:120%;height:180px;opacity:.4;pointer-events:none;z-index:0}
+  .topo .peak{fill:var(--accent-ember)}
+  @media (prefers-reduced-motion:no-preference){
+    .topo .peak{animation:pulse 2.6s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+  }
+
+  .panel{
+    position:relative;z-index:1;margin-top:30px;padding:30px 24px 26px;
+    background:var(--bg-pane);border:1px solid var(--rule);border-radius:16px;
+  }
+  .zh{font-family:'Noto Serif TC',serif;font-weight:900;font-size:34px;line-height:1.05}
+  .en{font-family:'Newsreader',serif;font-style:italic;font-size:17px;color:var(--accent);margin-top:6px;transition:color .35s}
+  .role{font-size:12.5px;color:var(--ink-dim);margin-top:6px}
+
+  .qrbox{
+    background:var(--ink-white);padding:16px;border-radius:12px;display:inline-block;
+    line-height:0;margin:24px 0 18px;
+  }
+  .qrbox img,.qrbox canvas{display:block;width:200px;height:200px}
+  @media(max-width:360px){.qrbox img,.qrbox canvas{width:168px;height:168px}}
+
+  .how{font-size:14px;color:var(--ink-warm);line-height:1.8}
+  .how b{color:var(--accent);font-weight:600;transition:color .35s}
+  .url{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-mute);margin-top:14px;word-break:break-all;letter-spacing:.03em}
+
+  .who{display:flex;gap:6px;justify-content:center;margin-top:22px}
+  .who button{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;
+    padding:8px 18px;border-radius:6px;cursor:pointer;transition:.2s;
+    border:1px solid var(--rule);background:transparent;color:var(--ink-mute);
+  }
+  .who button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg-deep);font-weight:500}
+
+  .open{
+    display:inline-block;margin-top:16px;font-size:13px;color:var(--ink-dim);
+    text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:2px;
+  }
+  .hint{margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-mute);letter-spacing:.1em}
+
+  @media print{
+    body{background:#fff;color:#0e1818;display:block;padding:0}
+    .panel{background:#fff;border-color:#5a6360;box-shadow:none}
+    .zh{color:#0e1818}.role,.url,.hint{color:#5a6360}
+    .qrbox{padding:0}
+    .who,.open,.hint{display:none}
+    .topo{opacity:.2}
+  }
+</style>
+</head>
+<body data-card="nick">
+<div class="sheet">
+
+  <svg class="topo" viewBox="0 0 900 200" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+    <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d4a85a" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#d4a85a" stop-opacity="0.03"/>
+    </linearGradient></defs>
+    <g fill="none" stroke="url(#cg)" stroke-width="1.1">
+      <path d="M-40 180 Q 190 128 310 124 T 520 62 T 700 72 T 940 124"/>
+      <path d="M-40 164 Q 200 112 320 108 T 520 44 T 700 56 T 940 108" opacity=".8"/>
+      <path d="M-40 148 Q 210 96 330 92 T 520 26 T 700 40 T 940 92" opacity=".6"/>
+    </g>
+    <circle class="peak" cx="520" cy="26" r="5"/>
+  </svg>
+
+  <div class="brand">
+    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <path d="M2 22 Q 10 16 16 12 Q 22 16 30 22" stroke="#d4a85a" stroke-width="1.5"/>
+      <path d="M4 26 Q 12 19 16 16 Q 20 19 28 26" stroke="#d4a85a" stroke-width="1.5" opacity=".7"/>
+      <circle cx="16" cy="12" r="2" fill="#e07a3e"/>
+    </svg>
+    品昇智匯
+  </div>
+  <span class="label">Scan to connect</span>
+
+  <div class="panel">
+    <div class="zh" id="f-zh">張惟荏</div>
+    <div class="en" id="f-en">Nick Chang</div>
+    <div class="role" id="f-role">Co-founder / RD</div>
+
+    <div class="qrbox" id="qr"></div>
+
+    <p class="how">用手機相機掃描<br><b>直接打開電子名片</b></p>
+    <p class="url" id="u"></p>
+  </div>
+
+  <div class="who" role="group" aria-label="切換">
+    <button id="p0" aria-pressed="true">NICK</button>
+    <button id="p1" aria-pressed="false">ZIP</button>
+  </div>
+  <a class="open" id="direct" href="index.html">直接打開名片</a>
+  <p class="hint">列印時建議 A6 或名片尺寸</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* ══════════ 設定 ══════════
+   CARD_URL 留空 = 自動用同一個資料夾底下的 index.html（推薦，換網域也不用改）
+   要指定就填完整網址，例如 "https://card.ainickzip.com/" */
+const CARD_URL = "";
+const PEOPLE = [
+  { key:"nick", zh:"張惟荏", en:"Nick Chang", role:"Co-founder / RD" },
+  { key:"zip",  zh:"王品森", en:"Zip Wang",  role:"Co-founder / PM" }
+];
+/* ═════════════════════════ */
+
+const $ = id => document.getElementById(id);
+let cur = 0;
+
+function baseURL(){
+  if (CARD_URL) return CARD_URL.replace(/\/?$/,"/").replace(/index\.html\/$/,"index.html");
+  if (location.protocol.indexOf("http") !== 0) return "";       /* 本機預覽 */
+  return location.href.replace(/[^\/]*(\?.*)?(#.*)?$/, "") + "index.html";
+}
+function cardURL(p){ const b = baseURL(); return b ? b + "#" + p.key : ""; }
+
+function render(i){
+  cur = i; const p = PEOPLE[i];
+  document.body.dataset.card = p.key;
+  document.title = p.zh + "　品昇智匯 AICC";
+  $("f-zh").textContent = p.zh; $("f-en").textContent = p.en; $("f-role").textContent = p.role;
+  $("p0").setAttribute("aria-pressed", i===0);
+  $("p1").setAttribute("aria-pressed", i===1);
+  $("direct").href = "index.html#" + p.key;
+  if (location.protocol.indexOf("http")===0) history.replaceState(null,"","#"+p.key);
+
+  const url = cardURL(p);
+  $("u").textContent = url ? url.replace(/^https?:\/\//,"") : "上線後這裡會顯示名片網址";
+
+  const box = $("qr"); box.innerHTML = "";
+  if (!url){
+    box.innerHTML = '<div style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;color:#0e1818;font-size:12px;text-align:center;line-height:1.7;font-family:sans-serif">本機預覽無法產生<br>正式 QR<br><br>上傳到 GitHub Pages<br>後就會出現</div>';
+    return;
+  }
+  if (window.QRCode){
+    new QRCode(box,{text:url,width:200,height:200,colorDark:"#0e1818",colorLight:"#f0ece4",
+      correctLevel:QRCode.CorrectLevel.M});
+  } else {
+    box.innerHTML = '<div style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;color:#0e1818;font-size:12px">QR 需要連網</div>';
+  }
+}
+
+$("p0").addEventListener("click",()=>render(0));
+$("p1").addEventListener("click",()=>render(1));
+const KEYS = PEOPLE.map(x=>x.key);
+window.addEventListener("hashchange",()=>{
+  const i = KEYS.indexOf(location.hash.replace("#","").toLowerCase());
+  render(i<0?0:i);
+});
+render(Math.max(0, KEYS.indexOf(location.hash.replace("#","").toLowerCase())));
+</script>
+</body>
+</html>
